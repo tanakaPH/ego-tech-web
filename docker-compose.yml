@@ -1,0 +1,43 @@
+version: '3'
+services:
+    app:
+        container_name: NodeContainer
+        # 起動イメージ
+        image: node:16
+        tty: true
+        # ホスト側のポート：コンテナのポート
+        ports:
+            - '3000:3000'
+        # ホスト側のsrcをコンテナのappにマウント
+        volumes:
+            - ./src:/app
+        # 起動時のカレントフォルダ
+        working_dir: /app
+        # 起動後に実行するコマンド
+        command: sh -c 'npx tsc; npm run dev'
+        # 仮想ネットワーク定義
+        networks:
+            - app-network
+        # 依存コンテナ
+        depends_on: 
+            - mongo
+        # 環境変数
+        env_file:
+            - .env
+    mongo:
+        container_name: MongoDBContainer
+        image: mongo:4.2.5-bionic
+        restart: always
+        #ports:
+        #  - 27099:27017
+        volumes:
+            - ./data/db:/data/db
+        command:
+            - mongod
+        networks:
+            - app-network
+        env_file: 
+            - .env
+networks:
+    app-network:
+        external: true
